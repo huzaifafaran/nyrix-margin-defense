@@ -260,7 +260,71 @@ with tab3:
         st.metric("Est. Power Cost (Monthly)", f"${total_power_cost:,.0f}", f"-{(100-gas_usage_pct)*0.5}% vs Baseline")
 
     st.markdown("---")
-    st.markdown("#### 3. Maintenance & Inventory Analytics")
+    
+    col_cop3, col_cop4 = st.columns(2)
+    
+    with col_cop3:
+        st.markdown("#### 3. Clinker Factor Optimization (The Holy Grail)")
+        st.caption("Current modeled Clinker Factor: **83.1%** (Based on Gypsum & Limestone usage).")
+        
+        # Clinker Factor Logic
+        # Target Cement Production: 135,686 Tons (from sheet)
+        cement_vol = 135686
+        
+        # Base Line
+        base_clinker_pct = 83.1
+        base_additive_pct = 16.9 # Gypsum (6.6) + Limestone (10.3)
+        
+        target_clinker_pct = st.slider("Target Clinker Factor (%)", 75.0, 85.0, base_clinker_pct, 0.1)
+        
+        # Savings Calc
+        # Cost of Clinker vs Additive (Estimate)
+        # Clinker Cost (Energy + Raw Mat): Let's say $35/ton (Operational cost)
+        # Additive Cost (Mining only): $2.5/ton
+        cost_clinker_ton = 35.0
+        cost_additive_ton = 2.5
+        
+        base_spend = (cement_vol * (base_clinker_pct/100) * cost_clinker_ton) + (cement_vol * (base_additive_pct/100) * cost_additive_ton)
+        new_spend = (cement_vol * (target_clinker_pct/100) * cost_clinker_ton) + (cement_vol * ((100-target_clinker_pct)/100) * cost_additive_ton)
+        
+        cf_savings = base_spend - new_spend
+        
+        st.metric("Proj. Monthly Savings (Clinker Reduction)", f"${cf_savings:,.0f}", delta_color="normal")
+        st.write(f"📉 Reducing Clinker by **{base_clinker_pct - target_clinker_pct:.1f}%** replaces energy-intensive Clinker with cheaper fillers.")
+
+    with col_cop4:
+        st.markdown("#### 4. Packing Plant Efficiency")
+        st.markdown("**Paper Bag Analysis**")
+        
+        # Data from Sheet
+        total_bags_budget = 2100000 
+        avg_cost_bag = 0.195 # From sheet
+        
+        # Breakage / Weight Logic
+        bag_weight_gsm = st.select_slider("Paper Bag Specification (GSM)", options=[70, 75, 80, 85], value=80)
+        breakage_rate = st.slider("Bag Breakage Rate (%)", 0.0, 5.0, 1.2, 0.1)
+        
+        # Impact
+        # Lower GSM = Cheaper bag but higher breakage risk? 
+        # For demo, let's just model cost reduction from GSM
+        # 80 -> 75 GSM = ~3% cost saving
+        
+        gsm_factor = 1.0 - ((80 - bag_weight_gsm) * 0.006) # Simple model
+        current_bag_cost = avg_cost_bag * gsm_factor
+        
+        # Breakage Cost (Wasted cement + Bag)
+        # Cost of wasted bag + Re-packing handling
+        breakage_cost = (total_bags_budget * (breakage_rate/100)) * (current_bag_cost + 0.5) # 0.5 penalty
+        
+        total_packing_spend = (total_bags_budget * current_bag_cost) + breakage_cost
+        base_packing_spend = (total_bags_budget * avg_cost_bag) + (total_bags_budget * 0.012 * (avg_cost_bag + 0.5)) # Baseline 1.2% breakage
+        
+        pack_saving = base_packing_spend - total_packing_spend
+        
+        st.metric("Proj. Packing Savings", f"${pack_saving:,.0f}", delta=f"{pack_saving/base_packing_spend*100:.1f}%")
+        
+    st.markdown("---")
+    st.markdown("#### 5. Maintenance & Inventory Analytics")
     col_stores1, col_stores2, col_stores3 = st.columns(3)
     col_stores1.metric("Stores & Spares Consumed", "$1.2M", "+5.4% vs Budget")
     col_stores2.metric("CWIP (Capital Work)", "$4.5M", "Kiln Upgrade On-Track")
