@@ -200,6 +200,24 @@ with tab3:
         new_clay_share = st.slider("Clay (%)", 5.0, 15.0, base_clay*100, 0.1)
         new_iron_share = st.slider("Iron Ore (%)", 0.0, 5.0, base_iron*100, 0.1)
         
+        # --- GUARDRAILS START ---
+        current_total = new_lst_share + new_clay_share + new_iron_share
+        
+        # Visual Feedback on Total
+        if abs(current_total - 100.0) > 0.1:
+            st.warning(f"⚠️ Total Mix: {current_total:.1f}% (Target: 100%). Calculations will be automatically normalized.")
+        else:
+            st.success(f"✅ Total Mix: {current_total:.1f}%")
+            
+        # Normalization Logic (Ensures math is always based on 100% mix)
+        norm_factor = 100.0 / current_total if current_total > 0 else 1.0
+        
+        # Effective percentages used in calc
+        eff_lst = new_lst_share * norm_factor
+        eff_clay = new_clay_share * norm_factor
+        eff_iron = new_iron_share * norm_factor
+        # --- GUARDRAILS END ---
+        
         # Unit Costs (Approx from sheet preview or industry standard for demo)
         cost_lst = 1.84 # IQD/Ton? (Low Sulpher)
         cost_clay = 2.36
@@ -207,7 +225,9 @@ with tab3:
 
         # Material Cost Calculation
         base_cost_per_ton_raw = (base_lst * cost_lst) + (base_clay * cost_clay) + (base_iron * cost_iron)
-        new_cost_per_ton_raw = ((new_lst_share/100) * cost_lst) + ((new_clay_share/100) * cost_clay) + ((new_iron_share/100) * cost_iron)
+        
+        # Use EFFECTIVE (Normalized) shares for the new cost
+        new_cost_per_ton_raw = ((eff_lst/100) * cost_lst) + ((eff_clay/100) * cost_clay) + ((eff_iron/100) * cost_iron)
         
         delta_raw_cost = (base_cost_per_ton_raw - new_cost_per_ton_raw) * total_raw_mix
         
