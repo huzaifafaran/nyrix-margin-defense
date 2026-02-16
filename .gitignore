@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.xlsx
+*.pptx
+*.pdf
+.env
+internal_data/
