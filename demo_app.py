@@ -264,64 +264,80 @@ with tab3:
     col_cop3, col_cop4 = st.columns(2)
     
     with col_cop3:
-        st.markdown("#### 3. Clinker Factor Optimization (The Holy Grail)")
-        st.caption("Current modeled Clinker Factor: **83.1%** (Based on Gypsum & Limestone usage).")
+        st.markdown("#### 3. Clinker Factor Optimization")
+        st.caption("Balance **Cost Savings** vs. **Cement Strength (MPa)**.")
         
         # Clinker Factor Logic
-        # Target Cement Production: 135,686 Tons (from sheet)
         cement_vol = 135686
-        
-        # Base Line
         base_clinker_pct = 83.1
-        base_additive_pct = 16.9 # Gypsum (6.6) + Limestone (10.3)
+        base_additive_pct = 16.9 
         
-        target_clinker_pct = st.slider("Target Clinker Factor (%)", 75.0, 85.0, base_clinker_pct, 0.1)
+        target_clinker_pct = st.slider("Target Clinker Factor (%)", 72.0, 85.0, base_clinker_pct, 0.1)
         
-        # Savings Calc
-        # Cost of Clinker vs Additive (Estimate)
-        # Clinker Cost (Energy + Raw Mat): Let's say $35/ton (Operational cost)
-        # Additive Cost (Mining only): $2.5/ton
-        cost_clinker_ton = 35.0
-        cost_additive_ton = 2.5
+        # --- EXPERT GUARDRAIL: Strength Correlation ---
+        # Rule of Thumb: 1% drop in clinker ~= -0.5 MPa (Simulated)
+        base_strength = 53.0 # Strong OPC
+        strength_penalty = (83.1 - target_clinker_pct) * 0.6 
+        proj_strength = base_strength - strength_penalty
         
-        base_spend = (cement_vol * (base_clinker_pct/100) * cost_clinker_ton) + (cement_vol * (base_additive_pct/100) * cost_additive_ton)
-        new_spend = (cement_vol * (target_clinker_pct/100) * cost_clinker_ton) + (cement_vol * ((100-target_clinker_pct)/100) * cost_additive_ton)
+        st.metric("Proj. 28-Day Strength", f"{proj_strength:.1f} MPa", delta=f"-{strength_penalty:.1f} MPa", delta_color="inverse")
         
-        cf_savings = base_spend - new_spend
-        
-        st.metric("Proj. Monthly Savings (Clinker Reduction)", f"${cf_savings:,.0f}", delta_color="normal")
-        st.write(f"📉 Reducing Clinker by **{base_clinker_pct - target_clinker_pct:.1f}%** replaces energy-intensive Clinker with cheaper fillers.")
+        if proj_strength < 42.5:
+             st.error("⛔ CRITICAL FAIL: Predicted strength below 42.5 MPa (Standard). This mix is unsellable.")
+             cf_savings = 0 # No savings if you can't sell it
+        elif proj_strength < 45.0:
+             st.warning("⚠️ QUALITY RISK: Low safety margin for premium markets.")
+             # Savings calc continues
+             cost_clinker_ton = 35.0
+             cost_additive_ton = 2.5
+             base_spend = (cement_vol * (base_clinker_pct/100) * cost_clinker_ton) + (cement_vol * (base_additive_pct/100) * cost_additive_ton)
+             new_spend = (cement_vol * (target_clinker_pct/100) * cost_clinker_ton) + (cement_vol * ((100-target_clinker_pct)/100) * cost_additive_ton)
+             cf_savings = base_spend - new_spend
+             st.metric("Proj. Monthly Savings", f"${cf_savings:,.0f}", delta_color="normal")
+        else:
+             st.success("✅ Quality Approved: Strength within standard.")
+             cost_clinker_ton = 35.0
+             cost_additive_ton = 2.5
+             base_spend = (cement_vol * (base_clinker_pct/100) * cost_clinker_ton) + (cement_vol * (base_additive_pct/100) * cost_additive_ton)
+             new_spend = (cement_vol * (target_clinker_pct/100) * cost_clinker_ton) + (cement_vol * ((100-target_clinker_pct)/100) * cost_additive_ton)
+             cf_savings = base_spend - new_spend
+             st.metric("Proj. Monthly Savings", f"${cf_savings:,.0f}", delta_color="normal")
+
 
     with col_cop4:
         st.markdown("#### 4. Packing Plant Efficiency")
-        st.markdown("**Paper Bag Analysis**")
+        st.markdown("**Paper Bag Analysis (Auto-Correlated)**")
         
         # Data from Sheet
         total_bags_budget = 2100000 
-        avg_cost_bag = 0.195 # From sheet
+        avg_cost_bag = 0.195 
         
-        # Breakage / Weight Logic
+        # Expert Link: GSM vs Breakage
+        # Lower GSM automatically increases breakage risk. User can't cheat physics.
         bag_weight_gsm = st.select_slider("Paper Bag Specification (GSM)", options=[70, 75, 80, 85], value=80)
-        breakage_rate = st.slider("Bag Breakage Rate (%)", 0.0, 5.0, 1.2, 0.1)
         
-        # Impact
-        # Lower GSM = Cheaper bag but higher breakage risk? 
-        # For demo, let's just model cost reduction from GSM
-        # 80 -> 75 GSM = ~3% cost saving
+        # Correlated Breakage Model
+        breakage_map = {85: 0.8, 80: 1.2, 75: 2.5, 70: 4.5}
+        projected_breakage = breakage_map[bag_weight_gsm]
         
-        gsm_factor = 1.0 - ((80 - bag_weight_gsm) * 0.006) # Simple model
+        st.info(f"💡 **Expert Logic:** Reducing to **{bag_weight_gsm} GSM** is projected to increase breakage to **{projected_breakage}%**.")
+
+        # Financials
+        gsm_factor = 1.0 - ((80 - bag_weight_gsm) * 0.006) 
         current_bag_cost = avg_cost_bag * gsm_factor
         
         # Breakage Cost (Wasted cement + Bag)
-        # Cost of wasted bag + Re-packing handling
-        breakage_cost = (total_bags_budget * (breakage_rate/100)) * (current_bag_cost + 0.5) # 0.5 penalty
+        breakage_cost = (total_bags_budget * (projected_breakage/100)) * (current_bag_cost + 0.5) 
         
         total_packing_spend = (total_bags_budget * current_bag_cost) + breakage_cost
-        base_packing_spend = (total_bags_budget * avg_cost_bag) + (total_bags_budget * 0.012 * (avg_cost_bag + 0.5)) # Baseline 1.2% breakage
+        base_packing_spend = (total_bags_budget * avg_cost_bag) + (total_bags_budget * 0.012 * (avg_cost_bag + 0.5)) 
         
         pack_saving = base_packing_spend - total_packing_spend
         
-        st.metric("Proj. Packing Savings", f"${pack_saving:,.0f}", delta=f"{pack_saving/base_packing_spend*100:.1f}%")
+        if pack_saving > 0:
+            st.metric("Proj. Net Savings", f"${pack_saving:,.0f}", f"Net Positive despite {projected_breakage}% breakage")
+        else:
+            st.metric("Proj. Net Loss", f"-${abs(pack_saving):,.0f}", "Breakage costs outline paper savings", delta_color="inverse")
         
     st.markdown("---")
     st.markdown("#### 5. Maintenance & Inventory Analytics")
