@@ -9,56 +9,40 @@ st.set_page_config(page_title="Nyrix AI | Margin Defense System", page_icon="ðŸ›
 # Custom CSS for Nyrix Branding (Purple/Clean Light Mode)
 st.markdown("""
 <style>
-    /* Force Dark Mode / White Text Look */
-    .stApp {
-        background-color: #0e1117;
-        color: #ffffff;
-    }
-    
-    /* Force White text for metrics and headers */
+    /* Aggressively force black text for ALL Streamlit elements */
     .stApp, .stMarkdown, .stMetricLabel, [data-testid="stMetricLabel"] {
-        color: #ffffff !important;
+        color: #000000 !important;
     }
     p, h1, h2, h3, h4, h5, h6, span, div {
-        color: #ffffff !important;
+        color: #000000 !important;
     }
     
     .main-header {
         font-family: 'Helvetica', sans-serif;
-        color: #ffffff !important;
+        color: #000000 !important;
         font-size: 42px;
         font-weight: bold;
     }
     .sub-header {
         font-family: 'Helvetica', sans-serif;
-        color: #e0e0e0 !important;
+        color: #000000 !important;
         font-size: 20px;
     }
     .metric-box {
-        background-color: #262730;
+        background-color: #f0f2f6;
         border-left: 5px solid #8A5CF5;
         padding: 15px;
         border-radius: 5px;
         margin-bottom: 20px;
-        color: #ffffff !important;
+        color: #000000 !important;
     }
-    
-    /* Metric Labels */
+    /* Fix for metric values that might be colored by delta, we leave them but ensure label is black */
     [data-testid="stMetricLabel"] > div {
-        color: #e0e0e0 !important;
+        color: #000000 !important;
     }
     [data-testid="stMetricValue"] > div {
-        color: #ffffff !important; 
+        /* color: #000000 !important;  Let delta color handle this, or force if needed */
     }
-    
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-       gap: 2px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        color: #e0e0e0;
-    }
-    
     </style>
 """, unsafe_allow_html=True)
 
@@ -133,11 +117,12 @@ with tab1:
         totals = {"marker":{"color":"#8A5CF5"}}
     ))
     
-    # Updated layout for Dark Mode visibility
+    # Updated layout for Light Mode visibility
+    # Updated layout for Light Mode visibility
     fig.update_layout(title="P&L Waterfall (Jan 2026)", showlegend=False, 
                       plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", 
-                      font=dict(color="#ffffff"), # Force White font
-                      xaxis=dict(color="#ffffff", showgrid=False), yaxis=dict(color="#ffffff", showgrid=True, gridcolor="#444"))
+                      font=dict(color="#000000"), # Force Black font
+                      xaxis=dict(color="#000000"), yaxis=dict(color="#000000")) # Force Axis Black
     st.plotly_chart(fig, key="waterfall_chart") # Removed use_container_width to silence warning, defaulting to content width or using container logic if needed. 
     # Note: Streamlit recent versions deprecated use_container_width=True in favor of passing it to st.set_page_config or letting users control it via width="100%". 
     # However, the warning said "use width='stretch'".
@@ -187,8 +172,8 @@ with tab2:
         ])
         fig_sim.update_layout(barmode='group', title="Profit Impact Simulation", 
                               plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", 
-                              font=dict(color="#ffffff"),
-                              xaxis=dict(color="#ffffff", showgrid=False), yaxis=dict(color="#ffffff", showgrid=True, gridcolor="#444"))
+                              font=dict(color="#000000"),
+                              xaxis=dict(color="#000000"), yaxis=dict(color="#000000"))
         st.plotly_chart(fig_sim, key="sim_chart")
         
 # --- TAB 3: COST OF PRODUCTION (COP) DEEP DIVE ---
