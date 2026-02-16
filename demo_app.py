@@ -21,7 +21,7 @@ st.markdown("""
     }
     .sub-header {
         font-family: 'Helvetica', sans-serif;
-        color: #31333F; /* Dark grey for visibility on light bg */
+        color: #000000; /* Force Black */
         font-size: 20px;
     }
     .metric-box {
@@ -30,7 +30,7 @@ st.markdown("""
         padding: 15px;
         border-radius: 5px;
         margin-bottom: 20px;
-        color: #31333F;
+        color: #000000; /* Force Black */
     }
     .highlight {
         color: #8A5CF5;
@@ -113,7 +113,7 @@ with tab1:
     # Updated layout for Light Mode visibility
     fig.update_layout(title="P&L Waterfall (Jan 2026)", showlegend=False, 
                       plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", 
-                      font=dict(color="#31333F")) # Dark font
+                      font=dict(color="#000000")) # Force Black font
     st.plotly_chart(fig, key="waterfall_chart") # Removed use_container_width to silence warning, defaulting to content width or using container logic if needed. 
     # Note: Streamlit recent versions deprecated use_container_width=True in favor of passing it to st.set_page_config or letting users control it via width="100%". 
     # However, the warning said "use width='stretch'".
@@ -163,7 +163,7 @@ with tab2:
         ])
         fig_sim.update_layout(barmode='group', title="Profit Impact Simulation", 
                               plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", 
-                              font=dict(color="#31333F")) # Dark font
+                              font=dict(color="#000000")) # Force Black font
         st.plotly_chart(fig_sim, key="sim_chart")
         
 # --- TAB 3: COST OF PRODUCTION (COP) DEEP DIVE ---
